@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserva de Hotel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        select, input[type="text"], input[type="datetime-local"], input[type="checkbox"], input[type="submit"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        #response {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #response p {
+            margin: 0;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Acacias Hotel</h1>
+    <form id="reserva-form">
+        <label for="tipo_habitacion">Tipo de habitación:</label>
+        <select id="tipo_habitacion" name="tipo_habitacion">
+            <option value="Ordinaria">Ordinaria</option>
+            <option value="Compartida">Compartida</option>
+        </select>
+
+        <label for="tipo_cama">Tipo de cama:</label>
+        <select id="tipo_cama" name="tipo_cama">
+            <option value="Sencilla">Sencilla</option>
+            <option value="Doble King">Doble</option>
+        </select>
+
+        <label for="nombre_cliente">Nombre:</label>
+        <input type="text" id="nombre_cliente" name="nombre_cliente" required>
+
+        <label for="apellido_cliente">Apellido:</label>
+        <input type="text" id="apellido_cliente" name="apellido_cliente" required>
+
+        <label for="direccion_cliente">Dirección:</label>
+        <input type="text" id="direccion_cliente" name="direccion_cliente" required>
+
+        <label for="fecha_inicio">Fecha de inicio:</label>
+        <input type="datetime-local" id="fecha_inicio" name="fecha_inicio" required>
+
+        <label for="fecha_fin">Fecha de fin:</label>
+        <input type="datetime-local" id="fecha_fin" name="fecha_fin" required>
+
+        <label for="restaurante">Restaurante:</label>
+        <input type="checkbox" id="restaurante" name="restaurante">
+
+        <label for="transporte">Transporte:</label>
+        <input type="checkbox" id="transporte" name="transporte">
+
+        <label for="parqueadero">Parqueadero:</label>
+        <input type="checkbox" id="parqueadero" name="parqueadero">
+
+        <label for="lavanderia">Lavandería:</label>
+        <input type="checkbox" id="lavanderia" name="lavanderia">
+
+        <label for="guia">Guía turístico:</label>
+        <input type="checkbox" id="guia" name="guia">
+
+        <input type="submit" value="Reservar">
+    </form>
+
+    <div id="response"></div>
+
+    <script>
+        $(document).ready(function() {
+            $('#tipo_habitacion').on('change', function() {
+                if ($(this).val() === 'Doble King') {
+                    $('#tipo_cama').val('Sencilla');
+                    $('#tipo_cama').prop('disabled', true);
+                } else {
+                    $('#tipo_cama').prop('disabled', false);
+                }
+            });
+
+            $('#reserva-form').on('submit', function(event) {
+                event.preventDefault();
+
+                const data = {
+                    tipo_habitacion: $('#tipo_habitacion').val(),
+                    tipo_cama: $('#tipo_cama').val(),
+                    nombre_cliente: $('#nombre_cliente').val(),
+                    apellido_cliente: $('#apellido_cliente').val(),
+                    direccion_cliente: $('#direccion_cliente').val(),
+                    fecha_inicio: $('#fecha_inicio').val(),
+                    fecha_fin: $('#fecha_fin').val(),
+                    restaurante: $('#restaurante').is(':checked'),
+                    transporte: $('#transporte').is(':checked'),
+                    parqueadero: $('#parqueadero').is(':checked'),
+                    lavanderia: $('#lavanderia').is(':checked'),
+                    guia: $('#guia').is(':checked')
+                };
+
+                $.ajax({
+                    url: '/reservar',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function(response) {
+                        $('#response').html('<p style="color: green;">' + response.success + '</p>');
+                    },
+                    error: function(response) {
+                        $('#response').html('<p style="color: red;">' + response.responseJSON.error + '</p>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
