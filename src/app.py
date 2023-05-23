@@ -1,18 +1,23 @@
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 import os
 import pyodbc
 import database as db
 from datetime import datetime
 
-template_dir = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-template_dir = os.path.join(template_dir, 'src', 'templates')
+#template_dir = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
+#template_dir = os.path.join(template_dir, 'src', 'templates')
 
-app = Flask(__name__, template_folder=template_dir)
+app = Flask(__name__)
+
+#, template_folder='C:/Users/R3/Desktop/trabajo de DS/Frontend/src'
+
+CORS(app)
 
 # Ruta de inicio de la aplicación
-@app.route('/')
-def home():
-    return render_template('index.html')
+#@app.route('/')
+#def home():
+ #   return render_template('App.js')
 
 @app.route('/reservar', methods=['POST'])
 def reservar():
@@ -32,6 +37,7 @@ def reservar():
 
     # Validar disponibilidad de habitaciones
     habitacion_id = validar_disponibilidad_habitaciones(tipo_habitacion, tipo_cama, fecha_inicio, fecha_fin)
+    precio = validar_precio_habitacion(habitacion_id)
     if not habitacion_id:
         return jsonify({'error': 'No hay habitaciones disponibles en las fechas seleccionadas.'}), 400
 
@@ -54,11 +60,11 @@ def reservar():
         try:
             # Insertar reserva y obtener el último ID de identidad insertado
             query_reserva = '''
-                INSERT INTO Reserva (nombre_cliente, apellido_cliente, direccion_cliente, habitacion_id, fecha_inicio, fecha_fin)
+                INSERT INTO Reserva (nombre_cliente, apellido_cliente, direccion_cliente, habitacion_id, fecha_inicio, fecha_fin, metodo_pago, valor_pago, correo, numero_tarjeta)
                 OUTPUT INSERTED.ID_reserva
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
-            cursor.execute(query_reserva, data['nombre_cliente'], data['apellido_cliente'], data['direccion_cliente'], habitacion_id, fecha_inicio, fecha_fin)
+            cursor.execute(query_reserva, data['nombre_cliente'], data['apellido_cliente'], data['direccion_cliente'], habitacion_id, fecha_inicio, fecha_fin, data['metodo_pago'], precio, data['correo'], data['numero_tarjeta'])
             reserva_id = cursor.fetchone()[0]
 
             # Insertar servicios
@@ -75,6 +81,22 @@ def reservar():
             return jsonify({'error': 'Error al crear la reserva: {}'.format(str(e))}), 500
 
     return jsonify({'success': 'Reserva realizada con éxito.'}), 200
+
+def validar_precio_habitacion(id):
+    with db.conn.cursor() as cursor:
+        query = '''
+        select h.precio from [dbo].[Habitacion] h
+        where h.ID_habitacion = ?
+        '''
+
+        cursor.execute(query, id)
+        precio = cursor.fetchone()
+        
+        if precio:
+            return precio[0]
+        else:
+            return None
+
 
 def validar_disponibilidad_habitaciones(tipo_habitacion, tipo_cama, fecha_inicio, fecha_fin):
     with db.conn.cursor() as cursor:
@@ -109,7 +131,7 @@ def validar_disponibilidad_habitaciones(tipo_habitacion, tipo_cama, fecha_inicio
         cursor.execute(query, tipo_habitacion, tipo_cama, fecha_inicio, fecha_inicio, fecha_fin, fecha_fin, fecha_inicio, fecha_fin,
                        fecha_inicio, fecha_inicio, fecha_fin, fecha_fin, fecha_inicio, fecha_fin)
         habitacion_disponible = cursor.fetchone()
-
+        
         if habitacion_disponible:
             return habitacion_disponible[0]
         else:
@@ -166,4 +188,4 @@ def validar_paro_armado(fecha_inicio, fecha_fin):
         return paros_armados > 0
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=4000)

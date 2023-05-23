@@ -72,6 +72,10 @@
         <label for="apellido_cliente">Apellido:</label>
         <input type="text" id="apellido_cliente" name="apellido_cliente" required>
 
+        <label for="correo">Correo electrónico:</label>
+        <input type="text" id="correo" name="correo" required>
+
+
         <label for="direccion_cliente">Dirección:</label>
         <input type="text" id="direccion_cliente" name="direccion_cliente" required>
 
@@ -80,6 +84,18 @@
 
         <label for="fecha_fin">Fecha de fin:</label>
         <input type="datetime-local" id="fecha_fin" name="fecha_fin" required>
+
+        <label for="metodo_pago">Método de pago:</label>
+        <select id="metodo_pago" name="metodo_pago">
+            <option value="Debito">Tarjeta de débito</option>
+            <option value="Credito">Tarjeta de crédito</option>
+        </select>
+
+        <label for="cuotas">Número de cuotas:</label>
+        <input type="number" id="cuotas" name="cuotas" min="1" step="1" disabled>
+
+        <label for="numero_tarjeta">Número de tarjeta:</label>
+        <input type="text" id="numero_tarjeta" name="numero_tarjeta" required>
 
         <label for="restaurante">Restaurante:</label>
         <input type="checkbox" id="restaurante" name="restaurante">
@@ -112,6 +128,14 @@
                 }
             });
 
+            $('#metodo_pago').on('change', function() {
+                if ($(this).val() === 'Credito') {
+                    $('#cuotas').prop('disabled', false);
+                } else {
+                    $('#cuotas').prop('disabled', true);
+                }
+            });
+
             $('#reserva-form').on('submit', function(event) {
                 event.preventDefault();
 
@@ -123,6 +147,10 @@
                     direccion_cliente: $('#direccion_cliente').val(),
                     fecha_inicio: $('#fecha_inicio').val(),
                     fecha_fin: $('#fecha_fin').val(),
+                    metodo_pago: $('#metodo_pago').val(),
+                    cuotas: $('#cuotas').val(),
+                    numero_tarjeta: $('#numero_tarjeta').val(),
+                    correo: $('#correo').val(),
                     restaurante: $('#restaurante').is(':checked'),
                     transporte: $('#transporte').is(':checked'),
                     parqueadero: $('#parqueadero').is(':checked'),
